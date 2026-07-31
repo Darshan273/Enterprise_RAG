@@ -2,7 +2,7 @@ import logfire
 from config import settings
 from app.ingestion.vectorDB import get_vector_store
 
-def search_enterprise_knowledge(query: str, limit: int = 20):
+def search_enterprise_knowledge(query: str, limit: int = 3):
     """
     Searches the Qdrant vector database for chunks relevant to the query.
     Returns a list of dictionaries with 'content' and 'metadata'.

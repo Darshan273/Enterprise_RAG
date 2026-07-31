@@ -1,0 +1,21 @@
+define flow guardian input check
+  $result = execute check_input_safety
+
+  if $result == "jailbreak"
+    bot refuse jailbreak
+    stop
+
+  if $result == "off_topic"
+    bot refuse off topic
+    stop
+
+  bot say "GUARDRAIL_PASSED"
+  stop
+
+
+define bot refuse jailbreak
+  "Your request has been blocked. A jailbreak attempt, prompt injection, instruction override, or roleplay attack was detected. Please ask a genuine question about the 'Attention Is All You Need' Transformer paper."
+
+
+define bot refuse off topic
+  "I can only answer questions about the 'Attention Is All You Need' Transformer paper. Relevant topics include: self-attention, multi-head attention, positional encoding, encoder/decoder architecture, feed-forward networks, BLEU scores, and machine translation. Please rephrase your question."

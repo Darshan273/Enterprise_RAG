@@ -3,7 +3,6 @@ from app.Agent.state import AgentState
 from langchain_groq import ChatGroq
 from config import settings
 
-# Direct ChatGroq setup
 llm = ChatGroq(
     api_key=settings.GROQ_API_KEY,
     model=settings.GROQ_MODEL or "llama-3.3-70b-versatile",
@@ -12,7 +11,10 @@ llm = ChatGroq(
 
 def planner_node(state: AgentState):
     """
-    The Planner determines if a search is needed based on the ENTIRE conversation.
+    Planner node: Decide if query needs retrieval.
+    
+    Since guardrails already validated the query is on-topic,
+    we just need to check if it's a simple greeting or needs research.
     """
     history = ""
     for msg in state["messages"][:-1]:
@@ -21,35 +23,25 @@ def planner_node(state: AgentState):
     
     user_message = state["messages"][-1]["content"] if state["messages"] else ""
     
-    prompt = f"""
-    You are an intelligent Assistant Planner. 
-    Analyze the conversation history and the latest user message.
+    # Only greetings skip retrieval
+    simple_greetings = [
+        "hello", "hi", "hey", "thanks", "thank you", 
+        "bye", "goodbye", "good morning", "good evening"
+    ]
     
-    CONVERSATION HISTORY:
-    {history}
+    message_lower = user_message.lower().strip()
     
-    LATEST MESSAGE:
-    "{user_message}"
-    
-    Task:
-    1. If the latest message is a greeting (hi, hello) or a question that can be answered using ONLY the conversation history above (e.g., "what is my name"), respond with 'CONVERSATIONAL'.
-    2. Else (it's a question that needs fresh knowledge) respond with the Search query.    
-    Output ONLY 'CONVERSATIONAL' or the search query.
-    """
-    
-    with logfire.span("Planner Decision"):
-        decision = llm.invoke(prompt).content.strip()
-        logfire.info(f"Intent identified: {decision}")
-    
-    if decision == "CONVERSATIONAL":
+    if message_lower in simple_greetings:
+        logfire.info("→ Conversational response (greeting)")
         return {
             "current_query": "CONVERSATIONAL",
-            "status": "Handling conversationally (using memory)...",
-            "plan": ["Intent: Conversational/Memory", "Retrieval: Skipped"]
+            "status": "Handling conversationally...",
+            "plan": ["Type: Greeting", "Retrieval: Skipped"]
         }
     
+    logfire.info(f"→ Technical/Research query: {user_message[:60]}")
     return {
-        "current_query": decision,
-        "status": f"Technical research needed. Searching for: {decision}",
-        "plan": ["Intent: Technical", f"Search Term: {decision}"]
+        "current_query": user_message,
+        "status": f"Research query - retrieving relevant papers...",
+        "plan": ["Type: Technical", f"Query: {user_message[:50]}..."]
     }

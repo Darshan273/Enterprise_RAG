@@ -55,35 +55,20 @@ def generate_node(state: AgentState):
         """
 
     with logfire.span("LLM Synthesis"):
-        try:
-            try:
-                llm = ChatGroq(
-                    api_key=settings.GROQ_API_KEY,
-                    model=settings.GROQ_MODEL or "llama-3.3-70b-versatile",
-                    temperature=0.1
-                )
-                response = llm.invoke(prompt)
-            except Exception as primary_err:
-                logfire.warning(f"Primary ChatGroq model failed: {primary_err}. Falling back to secondary model.")
-                # Fallback model
-                llm = ChatGroq(
-                    api_key=settings.GROQ_API_KEY,
-                    model="llama-3.1-8b-instant",
-                    temperature=0.1
-                )
-                response = llm.invoke(prompt)
+        llm = ChatGroq(
+            api_key=settings.GROQ_API_KEY,
+            model=settings.GROQ_MODEL or "llama-3.3-70b-versatile",
+            temperature=0.1
+        )
+        response = llm.invoke(prompt)
+        
+        content = response.content
+        plan_update = state.get("plan", [])
+        status = "Response generated."
 
-            content = response.content
-            plan_update = state.get("plan", [])
-            status = "Response generated."
-
-            return {
-                "final_answer": content,
-                "status": status,
-                "plan": plan_update,
-                "messages": [{"role": "assistant", "content": content}]
-            }
-
-        except Exception as e:
-            logfire.error(f"LLM Generation failed: {e}")
-            raise e
+        return {
+            "final_answer": content,
+            "status": status,
+            "plan": plan_update,
+            "messages": [{"role": "assistant", "content": content}]
+        }

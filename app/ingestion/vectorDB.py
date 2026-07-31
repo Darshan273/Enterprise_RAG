@@ -1,4 +1,5 @@
 import logfire
+import requests
 from qdrant_client import QdrantClient
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client.http.models import Distance, VectorParams
@@ -8,6 +9,7 @@ from langchain_community.embeddings import JinaEmbeddings
 embeddings = JinaEmbeddings(
     jina_api_key=settings.JINA_EMBEDDING_API_KEY,
     model_name="jina-embeddings-v2-base-en",
+    session=requests.Session(),
 )
 
 def get_qdrant_client():

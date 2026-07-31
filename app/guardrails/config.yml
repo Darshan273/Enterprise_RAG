@@ -1,0 +1,11 @@
+colang_version: "1.0"
+
+models:
+  - type: main
+    engine: langchain
+    model: groq/llama-3.3-70b-versatile
+
+rails:
+  input:
+    flows:
+      - guardian input check
