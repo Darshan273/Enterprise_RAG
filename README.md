@@ -49,29 +49,30 @@ Enterprise-grade Retrieval-Augmented Generation (RAG) service built with FastAPI
 ## Core Architecture
 
 ```mermaid
-flowchart LR
-		U[User Query] --> G[NeMo Guardrails]
-		G -->|Pass| P[Planner Node]
-		G -->|Blocked| B[Refusal Response]
+flowchart TB
+    U[User Query] --> G[NeMo Guardrails]
+    G -->|Pass| P[Planner Node]
+    G -->|Blocked| B[Refusal Response]
 
-		P -->|Conversational| R[Responder Node]
-		P -->|Needs Retrieval| T[Retriever Node]
+    P -->|Conversational| R[Responder Node]
+    P -->|Needs Retrieval| T[Retriever Node]
 
-		T --> Q[Qdrant Vector Search]
-		Q --> RR[FlashRank Reranking]
-		RR --> R
+    T --> Q[Qdrant Vector Search]
+    Q --> RR[FlashRank Reranking]
+    RR --> R
 
-		R --> A[Final Answer]
+    R --> A[Final Answer]
 
-		subgraph Memory
-			C[Redis Checkpointer]
-			L[PostgreSQL Long-Term Memory]
-		end
+    subgraph Memory
+        direction TB
+        C[Redis Checkpointer]
+        L[PostgreSQL Long-Term Memory]
+    end
 
-		P -. state .-> C
-		T -. state .-> C
-		R -. state .-> C
-		A -. archive endpoint .-> L
+    P -. state .-> C
+    T -. state .-> C
+    R -. state .-> C
+    A -. archive endpoint .-> L
 ```
 
 ## How Reranking Works
